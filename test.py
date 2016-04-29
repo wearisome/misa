@@ -6,6 +6,7 @@ import numpy as np
 # テストモジュール
 if __name__ == "__main__":
     size = 5 # 遺伝子の個数
+    np.random.seed(0)
     data = np.random.rand(size)*5 # 入力データの生成
     teach = 5 # 教師データ
     popSize = 20 # 遺伝アルゴリズムの個体数
