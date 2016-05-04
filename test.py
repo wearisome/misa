@@ -24,6 +24,10 @@ if __name__ == "__main__":
         count += 1
         print("teach Data = "+str(teach)+", result = "+str(result)+
               ", error = "+str(abs(teach-result)))
+    np.random.seed(9)
+    ndata = np.random.rand(size)*5
+    result = rga.funcResult(v_func, ndata)
+    print("teach Data = "+str(teach)+", result = "+str(result))
 
 """
     rga.createPopulation()
