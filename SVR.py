@@ -81,7 +81,20 @@ class SVR:
             y += alp[count]*self.kernel(data, x2)
             count += 1
         y += b
-        return y 
+        return y
+
+    def calcLoss(self, data_x, data_y):
+        y = self.creatResult(self.result, data_x)
+        loss = (y-data_y)*(y-data_y)
+        return loss
+
+    def update(self, data_x, data_y):
+        x = []
+        if self.calcLoss(data_x, data_y) > self.eps:
+            d_x = self.rate*self.getGradient(self.result)
+            x  = self.result + d_x
+            self.resutl = np.array(x)
+            print(self.result)
 
     def executeLearn(self):
         alp1 = np.ones(len(self.y))

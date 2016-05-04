@@ -27,10 +27,12 @@ if __name__ == "__main__": #EntryPoint
 
     count = 0
     while count < 5:
-        x = [count, np.pi/2]
+        x = [count, np.pi]
         print("Input:")
         print(x)
         print("Result:")
-        print(svr.getResult(x))
+        y = svr.getResult(x)
+        print(y)
+        svr.update(x,0)
         count += 1
         
