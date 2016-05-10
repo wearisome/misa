@@ -3,7 +3,7 @@ import numpy as np
 import SVR as svm
 
 if __name__ == "__main__": #EntryPoint
-    size = 30
+    size = 50
     count = 0
     set_tmp = []
     np.random.seed(0)
@@ -26,13 +26,12 @@ if __name__ == "__main__": #EntryPoint
     svr.executeLearn()
 
     count = 0
-    while count < 5:
-        x = [count, np.pi]
+    while count < 10:
+        x = [count, np.pi/2]
         print("Input:")
         print(x)
-        print("Result:")
         y = svr.getResult(x)
-        print(y)
+        print("Result:"+str(y))
         svr.update(x,0)
         count += 1
         
