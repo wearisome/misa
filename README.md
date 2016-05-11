@@ -4,11 +4,13 @@ another branch
 
 2
 
-Used Library
+# Used Library
  Numpy
+ jsm
+ PyMongo
 
 
-Algorithm
+# Algorithm
 
  Genetic Algorithm (Real Code)
 
