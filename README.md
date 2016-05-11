@@ -5,9 +5,10 @@ another branch
 2
 
 # Used Library
--Numpy
--jsm
--PyMongo
+
+- Numpy
+- jsm
+- PyMongo
 
 
 # Algorithm
