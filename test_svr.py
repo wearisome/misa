@@ -3,7 +3,7 @@ import numpy as np
 import SVR as svm
 
 if __name__ == "__main__": #EntryPoint
-    size = 50
+    size = 25
     count = 0
     set_tmp = []
     np.random.seed(0)
@@ -22,7 +22,7 @@ if __name__ == "__main__": #EntryPoint
         print(x)
     print("sample :"+str(y))
     
-    svr = svm.SVR( y,set_x, 0.2)
+    svr = svm.SVR( y,set_x)
     svr.executeLearn()
 
     count = 0
@@ -34,4 +34,3 @@ if __name__ == "__main__": #EntryPoint
         print("Result:"+str(y))
         svr.update(x,0)
         count += 1
-        
