@@ -1,16 +1,18 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 import numpy as np
 
 class SVR:
+
     #ハイパーパラメータ
-    err = 0.01  #許容誤差
-    eps = 0     #モデル関数の定数
+    err = 0.0001 #許容誤差
+    eps = 0.001   #モデル関数の定数
     rate = 0.2  #学習率(勾配降下法のステップ幅)
 
     """サポートベクトル回帰(SVR)"""
-    def __init__(self, data_y, data_x):
+    def __init__(self, data_y, data_x, s):
         self.y = data_y
         self.x = data_x
+        self.sigmma = s#ガウシアンカーネルのパラメータ
 
     """ガウシアン 正規分布関数因子"""
     def gaussian(self, x):
@@ -22,8 +24,8 @@ class SVR:
 
     """ ガウシアンカーネル """
     def kernel(self, x1, x2):
-        x = -np.linalg.norm(x1-x2)
-        return np.exp(x/2)
+        x = np.linalg.norm(x1-x2)
+        return np.exp(-x*x/(2*self.sigmma**2))
 
     """ サポートベクトル回帰のための目的関数"""
     def getFunction(self, nalp, malp):
@@ -64,34 +66,96 @@ class SVR:
             grad_b[n] = self.getPartGrad(alp, n, False)
         return(grad_n, grad_b)
 
+    def lineSearch(self, nalp, malp, ngrad, mgrad):
+        a = nalp - malp
+        b = nalp + malp
+        l = ngrad - mgrad
+        k = ngrad + mgrad
+        f_sum = 0
+        s_sum = 0
+        for n in range(len(l)):
+            for m in range(len(l)):
+                f_sum += l[n] * l[m] * self.kernel(self.x[n], self.x[m])
+                s_sum += (l[n] * a[m] + k[m] * a[n]) * self.kernel(self.x[n], self.x[m])
+        s_sum /= 2
+        s_sum += np.dot(l, self.y) - self.eps * np.sum(k)
+        return s_sum / f_sum
+
+    def newtonMethod(self, nalp, malp, ngrad, mgrad):
+        a = nalp - malp
+        b = nalp + malp
+        l = ngrad - mgrad
+        k = ngrad + mgrad
+        diff2 = 0
+        for n in range(len(l)):
+            for m in range(len(l)):
+                diff2 += l[n] * l[m] * self.kernel(self.x[n], self.x[m])
+        t = 0.5
+        tmp_t = 2
+        while abs(t-tmp_t) > self.err:
+            tmp_t = t
+            diff1 = 0
+            diff1 += -t*diff2
+            s_sum = 0
+            for n in range(len(l)):
+                for m in range(len(l)):
+                    s_sum += (l[n] * a[m] + k[m] * a[n]) * self.kernel(self.x[n], self.x[m])
+            s_sum /= 2
+            s_sum += np.dot(l, self.y)
+            s_sum -= self.eps * np.sum(k)
+            diff1 += s_sum
+            t = tmp_t+diff1/diff2
+            #print(str(t)+", "+str(diff1/diff2))
+        return -t
+
     """ 目的関数を最大化するような変数nalpとbalpを求める
 　　　　最適値を求める必要はない"""
     def hillClimbing(self):
-        nalp = np.zeros(len(self.y))
-        balp = np.zeros(len(self.y))
-        x = np.random.rand(2*len(self.y))
-        norm_dx = 1
+        nalp = np.ones(len(self.y))
+        balp = np.ones(len(self.y))
+        norm_dx = 10
         while norm_dx > self.err:
             grad = self.getGradient(nalp, balp)
-            step = self.rate
+            #step = self.rate
+            step = self.lineSearch(nalp, balp, grad[0], grad[1])
+            #step = self.newtonMethod(nalp, balp, grad[0], grad[1])
+            print("step:"+str(step))
             norm_dx = np.linalg.norm(np.r_[step*grad[0], step*grad[1]])
-            nalp += step*grad[0]
-            balp += step*grad[1]
-            #print(d_x)
-            #print(norm_dx)
+            nalp -= step*grad[0]
+            balp -= step*grad[1]
+            #print(grad)
+            print(norm_dx)
         return (nalp, balp)
+
+    """ """
+    def getConstFactor(self, alp, n, flag):
+        xn = self.x[n]
+        if (flag):
+            grad = self.y[n] - self.eps
+            for m in range(alp.size):
+                xm = self.x[m]
+                grad -= alp[m] * self.kernel(xn, xm)
+        else:
+            grad = -self.y[n] - self.eps
+            for m in range(alp.size):
+                xm = self.x[m]
+                grad += alp[m] * self.kernel(xn, xm)
+        return grad
 
     """ 最適値を取るような変数alpを用いて、
 　　　 dataから推定値を計算する"""
-    def creatResult(self, alp, data):
+    def creatResult(self, alp, x):
         b = 0
         y = 0
         for n in range(self.y.size):
-            b += self.getPartGrad(alp[0], n, True)
-            x2 = self.x[n]
-            y += (alp[0][n]-alp[1][n])*self.kernel(data, x2)/2
-        y += b/self.y.size
-        return y
+            b += self.getConstFactor(alp[0], n, True)
+        b /= self.y.size
+        for n in range(self.y.size):
+            x_n = self.x[n]
+            y += (alp[0][n]-alp[1][n])*self.kernel(x, x_n)
+        print(str(y)+", "+str(b))
+        y += b
+        return y/2
 
     """ オンライン学習のための損失関数 """
     def calcLoss(self, data_x, data_y):
@@ -115,7 +179,7 @@ class SVR:
 
     """ 入力したdataから推定される値を返却する"""
     def getResult(self, data):
-        return self.creatResult(self.result, data)
+        return self.creatResult(self.result, np.array(data))
                 
             
         
