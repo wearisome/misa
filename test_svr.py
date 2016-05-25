@@ -2,11 +2,13 @@
 import numpy as np
 import SVR as svm
 import csv
+import sys
+sys.path.append('./Initialize/')
 import CollectBrandPrice as price
 import datetime
 
 if __name__ == "__main__": #EntryPoint
-    f = open('brand_codes.csv', 'r')
+    f = open('./Initialize/brand_codes.csv', 'r')
     codes = csv.reader(f)
     cbp = price.CollectBrandPrices(codes)
     #cbp.collect(datetime.date(2016, 4, 1), datetime.date(2016, 5, 20))
